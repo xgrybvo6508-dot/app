@@ -31,9 +31,7 @@ yarn-error.*
 *.pem
 
 # local env files (real Supabase keys — see .env.example)
-.env:
-EXPO_PUBLIC_SUPABASE_URL=https://iqyxioljmeozmopwtjkm-ref.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_WVLFUrrMrhjLI_auzLwyWw_9j0mSFnH-anon-key
+.env
 .env*.local
 
 # typescript
