@@ -23,17 +23,25 @@ export default function SettingsScreen() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    if (!supabase) {
+      // Not configured — the app stays fully usable offline (see plan);
+      // this screen just explains why Auth/Sync are unavailable.
+      setLoadingSession(false);
+      return;
+    }
+    const client = supabase;
+    client.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoadingSession(false);
     });
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: subscription } = client.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
     return () => subscription.subscription.unsubscribe();
   }, []);
 
   async function handleAuthSubmit() {
+    if (!supabase) return;
     setAuthBusy(true);
     setMessage(null);
     const { error } =
@@ -49,6 +57,7 @@ export default function SettingsScreen() {
   }
 
   async function handleSignOut() {
+    if (!supabase) return;
     await supabase.auth.signOut();
   }
 
@@ -63,6 +72,21 @@ export default function SettingsScreen() {
     } finally {
       setSyncing(false);
     }
+  }
+
+  if (!supabase) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.form}>
+          <Text style={styles.title}>Настройки</Text>
+          <Text style={styles.message}>
+            Supabase не настроен. Скопируй .env.example в .env и впиши
+            EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY своего проекта — тогда
+            появятся вход и синхронизация. Всё остальное в приложении работает и без этого.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   if (loadingSession) {

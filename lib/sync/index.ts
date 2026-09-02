@@ -1,6 +1,7 @@
 // Supabase sync — see plan's "Текущая задача: подключить Supabase". Push-then-pull,
 // last-write-wins on `updated_at` for the mutable `nodes` table; `edges` and
 // `activity_log` are append-only so pulling is just "insert if missing".
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '../supabase/client';
 import { getNode, listNodesUpdatedSince, upsertNodeRaw } from '../db/nodes';
 import { insertEdgeIfMissing, listEdgesCreatedSince } from '../db/edges';
@@ -133,23 +134,27 @@ function maxIso(values: string[], fallback: string): string {
   return values.reduce((max, v) => (v > max ? v : max), fallback);
 }
 
-async function pushNodes(userId: string): Promise<void> {
+// Every function below takes the already-null-checked client explicitly
+// (resolved once in syncNow) rather than closing over the nullable module
+// export — keeps null-safety enforced by the type checker, not by convention.
+
+async function pushNodes(client: SupabaseClient, userId: string): Promise<void> {
   const since = getSyncWatermark('nodes:pushed');
   const changed = listNodesUpdatedSince(since);
   if (changed.length === 0) return;
 
-  const { error } = await supabase.from('nodes').upsert(changed.map((n) => toRemoteNode(n, userId)));
+  const { error } = await client.from('nodes').upsert(changed.map((n) => toRemoteNode(n, userId)));
   if (error) throw new Error(`push nodes failed: ${error.message}`);
 
   setSyncMeta('nodes:pushed', maxIso(changed.map((n) => n.updatedAt), since));
 }
 
-async function pushEdges(userId: string): Promise<void> {
+async function pushEdges(client: SupabaseClient, userId: string): Promise<void> {
   const since = getSyncWatermark('edges:pushed');
   const changed = listEdgesCreatedSince(since);
   if (changed.length === 0) return;
 
-  const { error } = await supabase
+  const { error } = await client
     .from('edges')
     .upsert(changed.map((e) => toRemoteEdge(e, userId)), { ignoreDuplicates: true });
   if (error) throw new Error(`push edges failed: ${error.message}`);
@@ -157,12 +162,12 @@ async function pushEdges(userId: string): Promise<void> {
   setSyncMeta('edges:pushed', maxIso(changed.map((e) => e.createdAt), since));
 }
 
-async function pushActivityLog(userId: string): Promise<void> {
+async function pushActivityLog(client: SupabaseClient, userId: string): Promise<void> {
   const since = getSyncWatermark('activity_log:pushed');
   const changed = listEventsCreatedSince(since);
   if (changed.length === 0) return;
 
-  const { error } = await supabase
+  const { error } = await client
     .from('activity_log')
     .upsert(changed.map((e) => toRemoteActivity(e, userId)), { ignoreDuplicates: true });
   if (error) throw new Error(`push activity_log failed: ${error.message}`);
@@ -170,9 +175,9 @@ async function pushActivityLog(userId: string): Promise<void> {
   setSyncMeta('activity_log:pushed', maxIso(changed.map((e) => e.createdAt), since));
 }
 
-async function pullNodes(userId: string): Promise<void> {
+async function pullNodes(client: SupabaseClient, userId: string): Promise<void> {
   const since = getSyncWatermark('nodes:pulled');
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('nodes')
     .select('id, user_id, type, title, body, status, tags, attributes, created_at, updated_at')
     .eq('user_id', userId)
@@ -196,9 +201,9 @@ async function pullNodes(userId: string): Promise<void> {
   }
 }
 
-async function pullEdges(userId: string): Promise<void> {
+async function pullEdges(client: SupabaseClient, userId: string): Promise<void> {
   const since = getSyncWatermark('edges:pulled');
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('edges')
     .select('id, user_id, from_id, to_id, type, created_at, weight, note')
     .eq('user_id', userId)
@@ -214,9 +219,9 @@ async function pullEdges(userId: string): Promise<void> {
   }
 }
 
-async function pullActivityLog(userId: string): Promise<void> {
+async function pullActivityLog(client: SupabaseClient, userId: string): Promise<void> {
   const since = getSyncWatermark('activity_log:pulled');
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('activity_log')
     .select('id, user_id, type, node_id, edge_id, from_status, to_status, created_at, metadata')
     .eq('user_id', userId)
@@ -232,25 +237,29 @@ async function pullActivityLog(userId: string): Promise<void> {
   }
 }
 
-export async function pushLocalChanges(userId: string): Promise<void> {
-  await pushNodes(userId);
-  await pushEdges(userId);
-  await pushActivityLog(userId);
+export async function pushLocalChanges(client: SupabaseClient, userId: string): Promise<void> {
+  await pushNodes(client, userId);
+  await pushEdges(client, userId);
+  await pushActivityLog(client, userId);
 }
 
-export async function pullRemoteChanges(userId: string): Promise<void> {
-  await pullNodes(userId);
-  await pullEdges(userId);
-  await pullActivityLog(userId);
+export async function pullRemoteChanges(client: SupabaseClient, userId: string): Promise<void> {
+  await pullNodes(client, userId);
+  await pullEdges(client, userId);
+  await pullActivityLog(client, userId);
 }
 
 /** Push-then-pull so the device's own latest edits always win over stale remote data. */
 export async function syncNow(): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase не настроен — заполни .env (см. .env.example)');
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
   if (!session) throw new Error('Not signed in');
 
-  await pushLocalChanges(session.user.id);
-  await pullRemoteChanges(session.user.id);
+  await pushLocalChanges(supabase, session.user.id);
+  await pullRemoteChanges(supabase, session.user.id);
 }

@@ -8,6 +8,7 @@ initDatabase();
 
 export default function RootLayout() {
   useEffect(() => {
+    if (!supabase) return; // Supabase not configured yet — app stays fully offline (see plan).
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         // Best-effort — a signed-in user gets one push+pull on launch; the
