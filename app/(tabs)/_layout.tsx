@@ -9,6 +9,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="chat" options={{ title: 'Обращение' }} />
       <Tabs.Screen name="learning" options={{ title: 'Обучение' }} />
       <Tabs.Screen name="research" options={{ title: 'Ресерч' }} />
+      <Tabs.Screen name="settings" options={{ title: 'Настройки' }} />
     </Tabs>
   );
 }

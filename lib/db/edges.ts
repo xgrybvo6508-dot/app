@@ -80,3 +80,20 @@ export function deleteEdge(id: string): void {
   const db = getDatabase();
   db.runSync('DELETE FROM edges WHERE id = ?', [id]);
 }
+
+// --- sync helpers (see lib/sync) ---
+
+export function listEdgesCreatedSince(sinceIso: string): GraphEdge[] {
+  const db = getDatabase();
+  const rows = db.getAllSync<EdgeRow>('SELECT * FROM edges WHERE created_at > ?', [sinceIso]);
+  return rows.map(rowToEdge);
+}
+
+/** Edges are immutable once created, so pulling just needs "insert if missing". */
+export function insertEdgeIfMissing(edge: GraphEdge): void {
+  const db = getDatabase();
+  db.runSync(
+    `INSERT OR IGNORE INTO edges (id, from_id, to_id, type, created_at, weight, note) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [edge.id, edge.fromId, edge.toId, edge.type, edge.createdAt, edge.weight, edge.note],
+  );
+}

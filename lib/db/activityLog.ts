@@ -76,3 +76,34 @@ export function listEventsSince(sinceIso: string): ActivityEvent[] {
   );
   return rows.map(rowToEvent);
 }
+
+// --- sync helpers (see lib/sync) ---
+
+/** Same as listEventsSince but strictly-greater, matching the watermark convention
+ * used by nodes/edges sync (avoids re-pushing the boundary row every time). */
+export function listEventsCreatedSince(sinceIso: string): ActivityEvent[] {
+  const db = getDatabase();
+  const rows = db.getAllSync<ActivityLogRow>('SELECT * FROM activity_log WHERE created_at > ?', [
+    sinceIso,
+  ]);
+  return rows.map(rowToEvent);
+}
+
+/** Activity log is append-only, so pulling just needs "insert if missing". */
+export function insertEventIfMissing(event: ActivityEvent): void {
+  const db = getDatabase();
+  db.runSync(
+    `INSERT OR IGNORE INTO activity_log (id, type, node_id, edge_id, from_status, to_status, created_at, metadata)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      event.id,
+      event.type,
+      event.nodeId,
+      event.edgeId,
+      event.fromStatus,
+      event.toStatus,
+      event.createdAt,
+      JSON.stringify(event.metadata),
+    ],
+  );
+}

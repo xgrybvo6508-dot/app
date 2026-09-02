@@ -168,3 +168,33 @@ export function deleteNode(id: string): void {
   const db = getDatabase();
   db.runSync('DELETE FROM nodes WHERE id = ?', [id]);
 }
+
+// --- sync helpers (see lib/sync) ---
+
+export function listNodesUpdatedSince(sinceIso: string): GraphNode[] {
+  const db = getDatabase();
+  const rows = db.getAllSync<NodeRow>('SELECT * FROM nodes WHERE updated_at > ?', [sinceIso]);
+  return rows.map(rowToNode);
+}
+
+/** Raw insert-or-replace by id — used only by the sync layer, which decides
+ * (via last-write-wins on updated_at) whether a remote row should win. */
+export function upsertNodeRaw(node: GraphNode): void {
+  const db = getDatabase();
+  db.runSync(
+    `INSERT OR REPLACE INTO nodes (id, type, title, body, status, tags, attributes, created_at, updated_at, embedding_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      node.id,
+      node.type,
+      node.title,
+      node.body,
+      node.status,
+      JSON.stringify(node.tags),
+      JSON.stringify(node.attributes),
+      node.createdAt,
+      node.updatedAt,
+      node.embeddingId,
+    ],
+  );
+}

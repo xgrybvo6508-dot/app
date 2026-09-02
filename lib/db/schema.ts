@@ -61,5 +61,11 @@ export function initDatabase(): void {
 
     CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at);
     CREATE INDEX IF NOT EXISTS idx_activity_log_type ON activity_log(type);
+
+    -- Sync watermarks (lastPushedAt/lastPulledAt per table) — see lib/sync.
+    CREATE TABLE IF NOT EXISTS sync_meta (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT NOT NULL
+    );
   `);
 }
