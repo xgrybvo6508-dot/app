@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -19,6 +19,7 @@ import {
 } from '../../lib/ai/localAssistant';
 import { colors, sharedStyles, spacing } from '../../lib/theme';
 import type { ChatMessage } from '../../lib/ai/types';
+import type { GraphNode } from '../../lib/db/types';
 
 let idCounter = 0;
 function nextId(): string {
@@ -26,31 +27,41 @@ function nextId(): string {
   return `msg-${idCounter}`;
 }
 
-export default function ChatScreen() {
-  const params = useLocalSearchParams<{ mode?: string; nodeId?: string }>();
-  const isThinkMode = params.mode === 'think' && !!params.nodeId;
-  const thinkNode = isThinkMode ? getNode(params.nodeId as string) : null;
-
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    if (thinkNode) {
-      const questions = generateThinkingQuestions(thinkNode);
-      return [
-        {
-          id: nextId(),
-          role: 'assistant',
-          text: `Разбираем «${thinkNode.title}» со всех сторон. Отвечай как получится — каждый ответ сохранится заметкой, связанной с этим узлом.`,
-        },
-        ...questions.map((q) => ({ id: nextId(), role: 'assistant' as const, text: q })),
-      ];
-    }
+function buildInitialMessages(thinkNode: GraphNode | null): ChatMessage[] {
+  if (thinkNode) {
+    const questions = generateThinkingQuestions(thinkNode);
     return [
       {
         id: nextId(),
         role: 'assistant',
-        text: 'Спроси «что мне делать» или «как я вообще» — отвечу на основе твоего графа.',
+        text: `Разбираем «${thinkNode.title}» со всех сторон. Отвечай как получится — каждый ответ сохранится заметкой, связанной с этим узлом.`,
       },
+      ...questions.map((q) => ({ id: nextId(), role: 'assistant' as const, text: q })),
     ];
-  });
+  }
+  return [
+    {
+      id: nextId(),
+      role: 'assistant',
+      text: 'Спроси «что мне делать» или «как я вообще» — отвечу на основе твоего графа.',
+    },
+  ];
+}
+
+export default function ChatScreen() {
+  const params = useLocalSearchParams<{ mode?: string; nodeId?: string }>();
+  const isThinkMode = params.mode === 'think' && !!params.nodeId;
+  const nodeId = isThinkMode ? (params.nodeId as string) : null;
+  // Memoized on nodeId (not re-run on every keystroke/render) — and used as the
+  // conversation's `key` below so switching to a different node's "Мышление"
+  // remounts a fresh conversation instead of appending onto the old one.
+  const thinkNode = useMemo(() => (nodeId ? getNode(nodeId) : null), [nodeId]);
+
+  return <ChatConversation key={nodeId ?? 'default'} thinkNode={thinkNode} />;
+}
+
+function ChatConversation({ thinkNode }: { thinkNode: GraphNode | null }) {
+  const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages(thinkNode));
   const [draft, setDraft] = useState('');
 
   function handleSend() {

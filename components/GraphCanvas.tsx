@@ -7,6 +7,14 @@ import type { CytoscapeElement } from '../lib/graph/cytoscapeElements';
 // v1 canvas per the plan: "WebView + Cytoscape.js — быстрее для v1, чем нативный
 // gesture-canvas" (Финальные архитектурные решения). Regenerates the whole page
 // on every data change — pan/zoom position resets on edit, acceptable for v1.
+
+// Node titles are user-entered and end up inside an inline <script> block —
+// JSON.stringify doesn't escape '<', so a title containing "</script>" would
+// otherwise close the tag early and let the rest be parsed as markup/script.
+function safeJson(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c');
+}
+
 function buildHtml(elements: CytoscapeElement[], focusId: string | null): string {
   return `<!DOCTYPE html>
 <html>
@@ -20,8 +28,8 @@ function buildHtml(elements: CytoscapeElement[], focusId: string | null): string
 <body>
 <div id="cy"></div>
 <script>
-  const elements = ${JSON.stringify(elements)};
-  const focusId = ${JSON.stringify(focusId)};
+  const elements = ${safeJson(elements)};
+  const focusId = ${safeJson(focusId)};
 
   const cy = cytoscape({
     container: document.getElementById('cy'),

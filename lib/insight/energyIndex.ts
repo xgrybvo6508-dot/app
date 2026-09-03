@@ -51,14 +51,23 @@ export function countStatusRegressions(
   ).length;
 }
 
+// Local calendar day (not UTC) — timestamps are bucketed by the device's own
+// day boundary, otherwise evening activity in timezones ahead of UTC rolls
+// into "tomorrow" and breaks the streak even though the user was active
+// every day from their own perspective.
+function localDayKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /** Consecutive days (ending today) with at least one event. */
 export function computeStreakDays(events: ActivityEvent[], now: Date = new Date()): number {
-  const daysWithActivity = new Set(
-    events.map((e) => new Date(e.createdAt).toISOString().slice(0, 10)),
-  );
+  const daysWithActivity = new Set(events.map((e) => localDayKey(new Date(e.createdAt))));
   let streak = 0;
   const cursor = new Date(now);
-  while (daysWithActivity.has(cursor.toISOString().slice(0, 10))) {
+  while (daysWithActivity.has(localDayKey(cursor))) {
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
