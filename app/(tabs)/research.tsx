@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createNode, listNodes, updateNode } from '../../lib/db/nodes';
 import { createEdge, getOutgoingEdges } from '../../lib/db/edges';
+import { sharedStyles, spacing } from '../../lib/theme';
 import type { GraphNode, ResearchFindingAttributes } from '../../lib/db/types';
 
 // Naive local stand-in for the `extract-candidates` Supabase Edge Function
@@ -87,42 +88,42 @@ export default function ResearchScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.list}>
-        <Text style={styles.sectionTitle}>Все находки ({findings.length})</Text>
+        <Text style={sharedStyles.sectionTitle}>Все находки ({findings.length})</Text>
         {findings.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardMeta}>
+          <View key={item.id} style={sharedStyles.card}>
+            <Text style={sharedStyles.cardTitle}>{item.title}</Text>
+            <Text style={sharedStyles.cardMeta}>
               Подтверждений: {corroborationCount(item)}
               {getAttrs(item).sourceUrl ? ` · ${getAttrs(item).sourceUrl}` : ''}
             </Text>
             <Pressable
-              style={styles.actionButtonMuted}
+              style={sharedStyles.secondaryButton}
               onPress={() => router.push({ pathname: '/chat', params: { mode: 'think', nodeId: item.id } })}
             >
-              <Text style={styles.actionButtonText}>Разобрать со всех сторон</Text>
+              <Text style={sharedStyles.secondaryButtonText}>Разобрать со всех сторон</Text>
             </Pressable>
           </View>
         ))}
-        {findings.length === 0 && <Text style={styles.empty}>Пока нет находок.</Text>}
+        {findings.length === 0 && <Text style={sharedStyles.emptyText}>Пока нет находок.</Text>}
 
         {orphans.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Без связи с задачей — зачем это?</Text>
+            <Text style={sharedStyles.sectionTitle}>Без связи с задачей — зачем это?</Text>
             {orphans.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <View style={styles.rowGap}>
+              <View key={item.id} style={sharedStyles.card}>
+                <Text style={sharedStyles.cardTitle}>{item.title}</Text>
+                <View style={sharedStyles.columnGap}>
                   <TextInput
-                    style={styles.quickAddInput}
+                    style={sharedStyles.input}
                     placeholder="Какую задачу это обслуживает..."
                     value={goalDraftById[item.id] ?? ''}
                     onChangeText={(t) => setGoalDraftById((prev) => ({ ...prev, [item.id]: t }))}
                     onSubmitEditing={() => handleLinkGoal(item)}
                   />
-                  <Pressable style={styles.actionButtonMuted} onPress={() => handleMarkReference(item)}>
-                    <Text style={styles.actionButtonText}>Просто справочно</Text>
+                  <Pressable style={sharedStyles.secondaryButton} onPress={() => handleMarkReference(item)}>
+                    <Text style={sharedStyles.secondaryButtonText}>Просто справочно</Text>
                   </Pressable>
                 </View>
               </View>
@@ -131,22 +132,22 @@ export default function ResearchScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.addBox}>
+      <View style={[styles.addBox, sharedStyles.hairlineTop]}>
         <TextInput
-          style={styles.quickAddInput}
+          style={sharedStyles.input}
           placeholder="Ссылка на источник (опционально)"
           value={sourceUrl}
           onChangeText={setSourceUrl}
         />
         <TextInput
-          style={styles.sourceInput}
+          style={[sharedStyles.input, sharedStyles.multilineInput, styles.sourceInput]}
           placeholder="Вставь текст статьи/источника..."
           value={sourceText}
           onChangeText={setSourceText}
           multiline
         />
-        <Pressable style={styles.actionButton} onPress={handleExtract}>
-          <Text style={styles.actionButtonText}>Разбить на утверждения</Text>
+        <Pressable style={sharedStyles.primaryButton} onPress={handleExtract}>
+          <Text style={sharedStyles.primaryButtonText}>Разбить на утверждения</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -154,24 +155,7 @@ export default function ResearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  list: { padding: 16, gap: 8 },
-  sectionTitle: { fontSize: 14, fontWeight: '600', marginTop: 16, marginBottom: 4, color: '#555' },
-  empty: { color: '#888' },
-  card: { backgroundColor: '#f4f4f6', borderRadius: 12, padding: 14, marginBottom: 8, gap: 8 },
-  cardTitle: { fontSize: 16 },
-  cardMeta: { fontSize: 12, color: '#888' },
-  rowGap: { gap: 8 },
-  addBox: { padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd', gap: 8 },
-  quickAddInput: { backgroundColor: '#f4f4f6', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
-  sourceInput: {
-    backgroundColor: '#f4f4f6',
-    borderRadius: 10,
-    padding: 10,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  actionButton: { backgroundColor: '#111', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center' },
-  actionButtonMuted: { backgroundColor: '#999', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center' },
-  actionButtonText: { color: '#fff', fontSize: 13 },
+  list: { padding: spacing.lg, gap: spacing.sm },
+  addBox: { padding: spacing.md, gap: spacing.sm },
+  sourceInput: { minHeight: 80 },
 });

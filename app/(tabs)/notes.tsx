@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createNode } from '../../lib/db/nodes';
 import { useNodeList } from '../../lib/hooks/useNodeList';
+import { sharedStyles } from '../../lib/theme';
 
 export default function NotesScreen() {
   const { nodes, refresh } = useNodeList({ type: 'note' });
@@ -26,32 +27,32 @@ export default function NotesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
       <FlatList
         data={nodes}
         keyExtractor={(n) => n.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <Text style={styles.empty}>Пока нет заметок — запишите первую мысль ниже.</Text>
+          <Text style={sharedStyles.emptyText}>Пока нет заметок — запишите первую мысль ниже.</Text>
         }
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
+          <View style={sharedStyles.card}>
+            <Text style={sharedStyles.cardTitle}>{item.title}</Text>
           </View>
         )}
       />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.inputRow}>
+        <View style={[styles.inputRow, sharedStyles.hairlineTop]}>
           <TextInput
-            style={styles.input}
+            style={[sharedStyles.input, sharedStyles.flex1]}
             placeholder="Новая заметка..."
             value={draft}
             onChangeText={setDraft}
             onSubmitEditing={handleAdd}
             returnKeyType="done"
           />
-          <Pressable style={styles.addButton} onPress={handleAdd}>
-            <Text style={styles.addButtonText}>+</Text>
+          <Pressable style={sharedStyles.roundButton} onPress={handleAdd}>
+            <Text style={sharedStyles.roundButtonText}>+</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -60,37 +61,6 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
   list: { padding: 16, gap: 8, flexGrow: 1 },
-  empty: { color: '#888', textAlign: 'center', marginTop: 40 },
-  card: {
-    backgroundColor: '#f4f4f6',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-  },
-  cardTitle: { fontSize: 16 },
-  inputRow: {
-    flexDirection: 'row',
-    padding: 12,
-    gap: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#ddd',
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#f4f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButtonText: { color: '#fff', fontSize: 20, lineHeight: 22 },
+  inputRow: { flexDirection: 'row', padding: 12, gap: 8 },
 });

@@ -20,6 +20,7 @@ import {
   nextSm2State,
   type Sm2State,
 } from '../../lib/learning/sm2';
+import { colors, sharedStyles, spacing } from '../../lib/theme';
 import type { GraphNode, KnowledgeItemAttributes } from '../../lib/db/types';
 
 const RATING_BUTTONS: { label: string; quality: number }[] = [
@@ -147,19 +148,19 @@ export default function LearningScreen() {
   if (reviewing) {
     const attrs = getAttrs(reviewing);
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
         <View style={styles.reviewBox}>
           <Text style={styles.reviewTitle}>{reviewing.title}</Text>
           {revealed && reviewing.body ? <Text style={styles.reviewBody}>{reviewing.body}</Text> : null}
           {!revealed ? (
-            <Pressable style={styles.actionButton} onPress={() => setRevealed(true)}>
-              <Text style={styles.actionButtonText}>Показать ответ</Text>
+            <Pressable style={sharedStyles.primaryButton} onPress={() => setRevealed(true)}>
+              <Text style={sharedStyles.primaryButtonText}>Показать ответ</Text>
             </Pressable>
           ) : (
             <View style={styles.ratingRow}>
               {RATING_BUTTONS.map((r) => (
-                <Pressable key={r.label} style={styles.ratingButton} onPress={() => handleRate(r.quality)}>
-                  <Text style={styles.actionButtonText}>{r.label}</Text>
+                <Pressable key={r.label} style={sharedStyles.primaryButton} onPress={() => handleRate(r.quality)}>
+                  <Text style={sharedStyles.primaryButtonText}>{r.label}</Text>
                 </Pressable>
               ))}
             </View>
@@ -179,38 +180,38 @@ export default function LearningScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.list}>
-        <Text style={styles.sectionTitle}>Повторение сегодня ({dueQueue.length})</Text>
+        <Text style={sharedStyles.sectionTitle}>Повторение сегодня ({dueQueue.length})</Text>
         {dueQueue.map((item) => (
-          <Pressable key={item.id} style={styles.card} onPress={() => setReviewingId(item.id)}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
+          <Pressable key={item.id} style={sharedStyles.card} onPress={() => setReviewingId(item.id)}>
+            <Text style={sharedStyles.cardTitle}>{item.title}</Text>
           </Pressable>
         ))}
-        {dueQueue.length === 0 && <Text style={styles.empty}>Очередь пуста.</Text>}
+        {dueQueue.length === 0 && <Text style={sharedStyles.emptyText}>Очередь пуста.</Text>}
 
         {complexRoots.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Сложные темы (карта)</Text>
+            <Text style={sharedStyles.sectionTitle}>Сложные темы (карта)</Text>
             {complexRoots.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <View style={styles.rowGap}>
+              <View key={item.id} style={sharedStyles.card}>
+                <Text style={sharedStyles.cardTitle}>{item.title}</Text>
+                <View style={sharedStyles.columnGap}>
                   <TextInput
-                    style={styles.decomposeInput}
+                    style={[sharedStyles.input, sharedStyles.multilineInput, styles.decomposeInput]}
                     placeholder="Составляющие темы, по одной на строку..."
                     value={decomposeDraftById[item.id] ?? ''}
                     onChangeText={(t) => setDecomposeDraftById((prev) => ({ ...prev, [item.id]: t }))}
                     multiline
                   />
-                  <Pressable style={styles.actionButton} onPress={() => handleDecompose(item)}>
-                    <Text style={styles.actionButtonText}>Разбить</Text>
+                  <Pressable style={sharedStyles.primaryButton} onPress={() => handleDecompose(item)}>
+                    <Text style={sharedStyles.primaryButtonText}>Разбить</Text>
                   </Pressable>
                   <Pressable
-                    style={styles.actionButton}
+                    style={sharedStyles.secondaryButton}
                     onPress={() => router.push({ pathname: '/chat', params: { mode: 'think', nodeId: item.id } })}
                   >
-                    <Text style={styles.actionButtonText}>Объяснить своими словами</Text>
+                    <Text style={sharedStyles.secondaryButtonText}>Объяснить своими словами</Text>
                   </Pressable>
                 </View>
               </View>
@@ -220,20 +221,20 @@ export default function LearningScreen() {
 
         {orphans.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Зачем ты это учишь?</Text>
+            <Text style={sharedStyles.sectionTitle}>Зачем ты это учишь?</Text>
             {orphans.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <View style={styles.rowGap}>
+              <View key={item.id} style={sharedStyles.card}>
+                <Text style={sharedStyles.cardTitle}>{item.title}</Text>
+                <View style={sharedStyles.columnGap}>
                   <TextInput
-                    style={styles.quickAddInput}
+                    style={sharedStyles.input}
                     placeholder="Для чего/кого — задача, тема, «понимание себя»..."
                     value={goalDraftById[item.id] ?? ''}
                     onChangeText={(t) => setGoalDraftById((prev) => ({ ...prev, [item.id]: t }))}
                     onSubmitEditing={() => handleLinkGoal(item)}
                   />
-                  <Pressable style={styles.actionButtonMuted} onPress={() => handleMarkCuriosity(item)}>
-                    <Text style={styles.actionButtonText}>Просто интересно</Text>
+                  <Pressable style={sharedStyles.secondaryButton} onPress={() => handleMarkCuriosity(item)}>
+                    <Text style={sharedStyles.secondaryButtonText}>Просто интересно</Text>
                   </Pressable>
                 </View>
               </View>
@@ -242,36 +243,36 @@ export default function LearningScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.addBox}>
+      <View style={[styles.addBox, sharedStyles.hairlineTop]}>
         <View style={styles.typeChipsRow}>
           <Pressable
-            style={[styles.typeChip, draftPath === 'simple' && styles.typeChipActive]}
+            style={[sharedStyles.chip, draftPath === 'simple' && sharedStyles.chipActive]}
             onPress={() => setDraftPath('simple')}
           >
-            <Text style={draftPath === 'simple' ? styles.typeChipTextActive : styles.typeChipText}>
+            <Text style={draftPath === 'simple' ? sharedStyles.chipTextActive : sharedStyles.chipText}>
               Прочитать
             </Text>
           </Pressable>
           <Pressable
-            style={[styles.typeChip, draftPath === 'complex' && styles.typeChipActive]}
+            style={[sharedStyles.chip, draftPath === 'complex' && sharedStyles.chipActive]}
             onPress={() => setDraftPath('complex')}
           >
-            <Text style={draftPath === 'complex' ? styles.typeChipTextActive : styles.typeChipText}>
+            <Text style={draftPath === 'complex' ? sharedStyles.chipTextActive : sharedStyles.chipText}>
               Разобрать по карте
             </Text>
           </Pressable>
         </View>
-        <View style={styles.rowGap}>
+        <View style={sharedStyles.rowGap}>
           <TextInput
-            style={styles.quickAddInput}
+            style={[sharedStyles.input, sharedStyles.flex1]}
             placeholder="Новая тема/термин..."
             value={draft}
             onChangeText={setDraft}
             onSubmitEditing={handleAdd}
             returnKeyType="done"
           />
-          <Pressable style={styles.actionButton} onPress={handleAdd}>
-            <Text style={styles.actionButtonText}>Добавить</Text>
+          <Pressable style={sharedStyles.primaryButton} onPress={handleAdd}>
+            <Text style={sharedStyles.primaryButtonText}>Добавить</Text>
           </Pressable>
         </View>
       </View>
@@ -280,35 +281,14 @@ export default function LearningScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  list: { padding: 16, gap: 8 },
-  sectionTitle: { fontSize: 14, fontWeight: '600', marginTop: 16, marginBottom: 4, color: '#555' },
-  empty: { color: '#888' },
-  card: { backgroundColor: '#f4f4f6', borderRadius: 12, padding: 14, marginBottom: 8, gap: 8 },
-  cardTitle: { fontSize: 16 },
-  rowGap: { gap: 8 },
-  addBox: { padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd', gap: 8 },
+  list: { padding: spacing.lg, gap: spacing.sm },
+  addBox: { padding: spacing.md, gap: spacing.sm },
   typeChipsRow: { flexDirection: 'row', gap: 6 },
-  typeChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: '#f0f0f0' },
-  typeChipActive: { backgroundColor: '#111' },
-  typeChipText: { fontSize: 12, color: '#333' },
-  typeChipTextActive: { fontSize: 12, color: '#fff' },
-  quickAddInput: { backgroundColor: '#f4f4f6', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
-  decomposeInput: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    minHeight: 60,
-    textAlignVertical: 'top',
-  },
-  actionButton: { backgroundColor: '#111', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center' },
-  actionButtonMuted: { backgroundColor: '#999', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center' },
-  actionButtonText: { color: '#fff', fontSize: 13 },
-  reviewBox: { flex: 1, padding: 20, justifyContent: 'center', gap: 16 },
-  reviewTitle: { fontSize: 22, fontWeight: '600', textAlign: 'center' },
-  reviewBody: { fontSize: 16, textAlign: 'center', color: '#444' },
-  ratingRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
-  ratingButton: { backgroundColor: '#111', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-  mastery: { textAlign: 'center', color: '#888', fontSize: 12 },
-  cancelLink: { textAlign: 'center', color: '#888', marginTop: 8 },
+  decomposeInput: { minHeight: 60 },
+  reviewBox: { flex: 1, padding: spacing.xl, justifyContent: 'center', gap: spacing.lg },
+  reviewTitle: { fontSize: 22, fontWeight: '600', textAlign: 'center', color: colors.textPrimary },
+  reviewBody: { fontSize: 16, textAlign: 'center', color: colors.textSecondary },
+  ratingRow: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', flexWrap: 'wrap' },
+  mastery: { textAlign: 'center', color: colors.textMuted, fontSize: 12 },
+  cancelLink: { textAlign: 'center', color: colors.textMuted, marginTop: spacing.sm },
 });

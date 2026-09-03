@@ -1,14 +1,5 @@
+import { colors } from '../theme';
 import type { GraphEdge, GraphNode } from '../db/types';
-
-const TYPE_COLORS: Record<string, string> = {
-  note: '#9aa0a6',
-  idea: '#4c8bf5',
-  knowledge_item: '#34a853',
-  research_finding: '#a142f4',
-  life_domain: '#fbbc04',
-  task: '#ea4335',
-  plan_item: '#ff6d01',
-};
 
 export interface CytoscapeElement {
   data: Record<string, string>;
@@ -23,7 +14,7 @@ export function toCytoscapeElements(nodes: GraphNode[], edges: GraphEdge[]): Cyt
     data: {
       id: n.id,
       label: n.title,
-      color: TYPE_COLORS[n.type] ?? '#888',
+      color: colors.graphTypeScale[n.type] ?? colors.graphTypeDefault,
     },
   }));
 

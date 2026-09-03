@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createNode, listNodes, updateNode } from '../../lib/db/nodes';
-import { createEdge, getOutgoingEdges } from '../../lib/db/edges';
+import { createEdge } from '../../lib/db/edges';
 import { getPartOfChainInGraph } from '../../lib/graph';
+import { colors, radius, sharedStyles, spacing } from '../../lib/theme';
 import type { GraphNode, NodeStatus } from '../../lib/db/types';
 
 // v1 uses tap-to-advance instead of real drag gesture (see plan's UX section on
@@ -70,24 +71,24 @@ export default function PlanningScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
       {planItems.length > 0 && (
-        <ScrollView horizontal style={styles.planItemRow} showsHorizontalScrollIndicator={false}>
+        <ScrollView horizontal style={[styles.planItemRow, sharedStyles.hairlineBottom]} showsHorizontalScrollIndicator={false}>
           <Pressable
-            style={[styles.planChip, selectedPlanItemId === null && styles.planChipActive]}
+            style={[sharedStyles.chip, styles.planChip, selectedPlanItemId === null && sharedStyles.chipActive]}
             onPress={() => setSelectedPlanItemId(null)}
           >
-            <Text style={selectedPlanItemId === null ? styles.planChipTextActive : styles.planChipText}>
+            <Text style={selectedPlanItemId === null ? sharedStyles.chipTextActive : sharedStyles.chipText}>
               Без цели
             </Text>
           </Pressable>
           {planItems.map((p) => (
             <Pressable
               key={p.id}
-              style={[styles.planChip, selectedPlanItemId === p.id && styles.planChipActive]}
+              style={[sharedStyles.chip, styles.planChip, selectedPlanItemId === p.id && sharedStyles.chipActive]}
               onPress={() => setSelectedPlanItemId(p.id)}
             >
-              <Text style={selectedPlanItemId === p.id ? styles.planChipTextActive : styles.planChipText}>
+              <Text style={selectedPlanItemId === p.id ? sharedStyles.chipTextActive : sharedStyles.chipText}>
                 {p.title}
               </Text>
             </Pressable>
@@ -109,21 +110,21 @@ export default function PlanningScreen() {
                     .map((c) => c.node.title)
                     .join(' → ');
                   return (
-                    <View key={task.id} style={styles.card}>
-                      <Text style={styles.cardTitle}>{task.title}</Text>
-                      {breadcrumb ? <Text style={styles.breadcrumb}>{breadcrumb}</Text> : null}
+                    <View key={task.id} style={[sharedStyles.card, styles.taskCard]}>
+                      <Text style={sharedStyles.cardTitle}>{task.title}</Text>
+                      {breadcrumb ? <Text style={sharedStyles.cardMeta}>{breadcrumb}</Text> : null}
                       <View style={styles.cardActions}>
                         <Pressable
                           disabled={!prevStatus(task.status)}
                           onPress={() => moveTask(task, prevStatus(task.status))}
                         >
-                          <Text style={styles.moveArrow}>←</Text>
+                          <Text style={[styles.moveArrow, !prevStatus(task.status) && styles.moveArrowDisabled]}>←</Text>
                         </Pressable>
                         <Pressable
                           disabled={!nextStatus(task.status)}
                           onPress={() => moveTask(task, nextStatus(task.status))}
                         >
-                          <Text style={styles.moveArrow}>→</Text>
+                          <Text style={[styles.moveArrow, !nextStatus(task.status) && styles.moveArrowDisabled]}>→</Text>
                         </Pressable>
                       </View>
                     </View>
@@ -134,26 +135,26 @@ export default function PlanningScreen() {
         ))}
       </ScrollView>
 
-      <View style={styles.addBox}>
-        <View style={styles.rowGap}>
+      <View style={[styles.addBox, sharedStyles.hairlineTop]}>
+        <View style={sharedStyles.columnGap}>
           <TextInput
-            style={styles.quickAddInput}
+            style={sharedStyles.input}
             placeholder="Новая веха/цель..."
             value={planItemDraft}
             onChangeText={setPlanItemDraft}
             onSubmitEditing={handleAddPlanItem}
           />
         </View>
-        <View style={styles.addRow}>
+        <View style={sharedStyles.rowGap}>
           <TextInput
-            style={[styles.quickAddInput, styles.flex1]}
+            style={[sharedStyles.input, sharedStyles.flex1]}
             placeholder={selectedPlanItemId ? 'Новая задача для выбранной цели...' : 'Новая задача...'}
             value={taskDraft}
             onChangeText={setTaskDraft}
             onSubmitEditing={handleAddTask}
           />
-          <Pressable style={styles.actionButton} onPress={handleAddTask}>
-            <Text style={styles.actionButtonText}>+</Text>
+          <Pressable style={[sharedStyles.roundButton, styles.addTaskButton]} onPress={handleAddTask}>
+            <Text style={sharedStyles.roundButtonText}>+</Text>
           </Pressable>
         </View>
       </View>
@@ -162,39 +163,21 @@ export default function PlanningScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  planItemRow: { maxHeight: 44, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  planChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 14,
-    backgroundColor: '#f0f0f0',
-    marginHorizontal: 4,
-    marginVertical: 6,
+  planItemRow: { maxHeight: 44 },
+  planChip: { marginHorizontal: 4, marginVertical: 6 },
+  board: { padding: spacing.md, gap: spacing.sm },
+  column: {
+    width: 220,
+    backgroundColor: colors.backgroundMuted,
+    borderRadius: radius.lg,
+    padding: spacing.sm + 2,
+    marginRight: spacing.sm + 2,
   },
-  planChipActive: { backgroundColor: '#111' },
-  planChipText: { fontSize: 12, color: '#333' },
-  planChipTextActive: { fontSize: 12, color: '#fff' },
-  board: { padding: 12, gap: 10 },
-  column: { width: 220, backgroundColor: '#fafafa', borderRadius: 12, padding: 10, marginRight: 10 },
-  columnTitle: { fontWeight: '600', marginBottom: 8, color: '#333' },
-  card: { backgroundColor: '#fff', borderRadius: 10, padding: 10, marginBottom: 8, elevation: 1 },
-  cardTitle: { fontSize: 14 },
-  breadcrumb: { fontSize: 11, color: '#888', marginTop: 4 },
-  cardActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  moveArrow: { fontSize: 16, paddingHorizontal: 8 },
-  addBox: { padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd', gap: 8 },
-  rowGap: { gap: 8 },
-  addRow: { flexDirection: 'row', gap: 8 },
-  flex1: { flex: 1 },
-  quickAddInput: { backgroundColor: '#f4f4f6', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButtonText: { color: '#fff', fontSize: 18 },
+  columnTitle: { fontWeight: '600', marginBottom: spacing.sm, color: colors.textSecondary },
+  taskCard: { backgroundColor: colors.background, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  cardActions: { flexDirection: 'row', justifyContent: 'space-between' },
+  moveArrow: { fontSize: 16, paddingHorizontal: spacing.sm, color: colors.textPrimary },
+  moveArrowDisabled: { color: colors.textMuted },
+  addBox: { padding: spacing.md, gap: spacing.sm },
+  addTaskButton: { width: 40, height: 40, borderRadius: radius.md },
 });

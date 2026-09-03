@@ -1,8 +1,18 @@
 import { Tabs } from 'expo-router';
+import { colors } from '../../lib/theme';
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ headerTitleStyle: { fontWeight: '600' } }}>
+    <Tabs
+      screenOptions={{
+        headerTitleStyle: { fontWeight: '600', color: colors.textPrimary },
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.background, borderTopColor: colors.border },
+      }}
+    >
       <Tabs.Screen name="notes" options={{ title: 'Заметки' }} />
       <Tabs.Screen name="map" options={{ title: 'Карта' }} />
       <Tabs.Screen name="planning" options={{ title: 'Планирование' }} />

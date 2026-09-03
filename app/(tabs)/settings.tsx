@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase/client';
 import { syncNow } from '../../lib/sync';
+import { colors, sharedStyles, spacing } from '../../lib/theme';
 
 export default function SettingsScreen() {
   const [session, setSession] = useState<Session | null>(null);
@@ -76,7 +77,7 @@ export default function SettingsScreen() {
 
   if (!supabase) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
         <View style={styles.form}>
           <Text style={styles.title}>Настройки</Text>
           <Text style={styles.message}>
@@ -91,19 +92,19 @@ export default function SettingsScreen() {
 
   if (loadingSession) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator style={styles.centered} />
+      <SafeAreaView style={sharedStyles.screen}>
+        <ActivityIndicator style={styles.centered} color={colors.accent} />
       </SafeAreaView>
     );
   }
 
   if (!session) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
         <View style={styles.form}>
           <Text style={styles.title}>{authMode === 'signUp' ? 'Регистрация' : 'Вход'}</Text>
           <TextInput
-            style={styles.input}
+            style={sharedStyles.input}
             placeholder="Email"
             autoCapitalize="none"
             keyboardType="email-address"
@@ -111,15 +112,15 @@ export default function SettingsScreen() {
             onChangeText={setEmail}
           />
           <TextInput
-            style={styles.input}
+            style={sharedStyles.input}
             placeholder="Пароль"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
           {message && <Text style={styles.message}>{message}</Text>}
-          <Pressable style={styles.actionButton} onPress={handleAuthSubmit} disabled={authBusy}>
-            <Text style={styles.actionButtonText}>
+          <Pressable style={sharedStyles.primaryButton} onPress={handleAuthSubmit} disabled={authBusy}>
+            <Text style={styles.primaryButtonText}>
               {authBusy ? 'Подождите...' : authMode === 'signUp' ? 'Зарегистрироваться' : 'Войти'}
             </Text>
           </Pressable>
@@ -134,21 +135,21 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
       <View style={styles.form}>
         <Text style={styles.title}>Настройки</Text>
         <Text style={styles.email}>{session.user.email}</Text>
 
         {message && <Text style={styles.message}>{message}</Text>}
 
-        <Pressable style={styles.actionButton} onPress={handleSync} disabled={syncing}>
-          <Text style={styles.actionButtonText}>
+        <Pressable style={sharedStyles.primaryButton} onPress={handleSync} disabled={syncing}>
+          <Text style={styles.primaryButtonText}>
             {syncing ? 'Синхронизация...' : 'Синхронизировать сейчас'}
           </Text>
         </Pressable>
 
-        <Pressable style={styles.actionButtonMuted} onPress={handleSignOut}>
-          <Text style={styles.actionButtonText}>Выйти</Text>
+        <Pressable style={sharedStyles.secondaryButton} onPress={handleSignOut}>
+          <Text style={sharedStyles.secondaryButtonText}>Выйти</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -156,30 +157,11 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
   centered: { flex: 1, justifyContent: 'center' },
-  form: { padding: 20, gap: 12 },
-  title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
-  email: { color: '#555', marginBottom: 12 },
-  input: {
-    backgroundColor: '#f4f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  message: { color: '#b3261e', fontSize: 13 },
-  actionButton: {
-    backgroundColor: '#111',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  actionButtonMuted: {
-    backgroundColor: '#999',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  actionButtonText: { color: '#fff', fontSize: 15 },
-  switchModeLink: { textAlign: 'center', color: '#666', marginTop: 8 },
+  form: { padding: spacing.xl, gap: spacing.md },
+  title: { fontSize: 22, fontWeight: '600', marginBottom: spacing.sm, color: colors.textPrimary },
+  email: { color: colors.textSecondary, marginBottom: spacing.md },
+  message: { color: colors.danger, fontSize: 13 },
+  primaryButtonText: { color: colors.textInverse, fontSize: 15 },
+  switchModeLink: { textAlign: 'center', color: colors.textSecondary, marginTop: spacing.sm },
 });

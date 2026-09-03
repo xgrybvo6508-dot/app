@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { colors } from '../lib/theme';
 import type { CytoscapeElement } from '../lib/graph/cytoscapeElements';
 
 // v1 canvas per the plan: "WebView + Cytoscape.js — быстрее для v1, чем нативный
@@ -13,7 +14,7 @@ function buildHtml(elements: CytoscapeElement[], focusId: string | null): string
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 <style>
-  html, body, #cy { margin: 0; padding: 0; width: 100%; height: 100%; background: #fafafa; }
+  html, body, #cy { margin: 0; padding: 0; width: 100%; height: 100%; background: ${colors.graphBackground}; }
 </style>
 </head>
 <body>
@@ -32,7 +33,7 @@ function buildHtml(elements: CytoscapeElement[], focusId: string | null): string
           'background-color': 'data(color)',
           label: 'data(label)',
           'font-size': 10,
-          color: '#222',
+          color: '${colors.textPrimary}',
           'text-wrap': 'wrap',
           'text-max-width': '80px',
           width: 36,
@@ -45,13 +46,13 @@ function buildHtml(elements: CytoscapeElement[], focusId: string | null): string
         selector: 'edge',
         style: {
           width: 1.5,
-          'line-color': '#ccc',
-          'target-arrow-color': '#ccc',
+          'line-color': '${colors.graphEdge}',
+          'target-arrow-color': '${colors.graphEdge}',
           'target-arrow-shape': 'triangle',
           'curve-style': 'bezier',
           'font-size': 8,
           label: 'data(label)',
-          color: '#aaa',
+          color: '${colors.graphEdgeLabel}',
         },
       },
       {

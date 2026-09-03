@@ -14,6 +14,7 @@ import { createNode, listNodes } from '../../lib/db/nodes';
 import { createEdge, listAllEdges } from '../../lib/db/edges';
 import { decomposeNode } from '../../lib/graph/decompose';
 import { toCytoscapeElements } from '../../lib/graph/cytoscapeElements';
+import { colors, sharedStyles, spacing } from '../../lib/theme';
 import type { GraphNode, NodeType } from '../../lib/db/types';
 
 const QUICK_ADD_TYPES: { type: NodeType; label: string }[] = [
@@ -79,21 +80,21 @@ export default function MapScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.quickAddRow}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
+      <View style={[styles.quickAddRow, sharedStyles.hairlineBottom]}>
         {QUICK_ADD_TYPES.map(({ type, label }) => (
           <Pressable
             key={type}
-            style={[styles.typeChip, quickAddType === type && styles.typeChipActive]}
+            style={[sharedStyles.chip, quickAddType === type && sharedStyles.chipActive]}
             onPress={() => setQuickAddType(type)}
           >
-            <Text style={quickAddType === type ? styles.typeChipTextActive : styles.typeChipText}>
+            <Text style={quickAddType === type ? sharedStyles.chipTextActive : sharedStyles.chipText}>
               {label}
             </Text>
           </Pressable>
         ))}
         <TextInput
-          style={styles.quickAddInput}
+          style={[sharedStyles.input, sharedStyles.flex1, styles.quickAddInput]}
           placeholder="Добавить на карту..."
           value={quickAddDraft}
           onChangeText={setQuickAddDraft}
@@ -103,10 +104,10 @@ export default function MapScreen() {
       </View>
 
       {linkFromId && (
-        <View style={styles.linkBanner}>
-          <Text style={styles.linkBannerText}>Режим связывания: выберите второй узел</Text>
+        <View style={[sharedStyles.bannerAccent, styles.linkBanner]}>
+          <Text style={sharedStyles.bannerAccentText}>Режим связывания: выберите второй узел</Text>
           <Pressable onPress={() => setLinkFromId(null)}>
-            <Text style={styles.linkBannerCancel}>Отмена</Text>
+            <Text style={[sharedStyles.bannerAccentText, styles.linkBannerCancel]}>Отмена</Text>
           </Pressable>
         </View>
       )}
@@ -114,45 +115,45 @@ export default function MapScreen() {
       <GraphCanvas elements={elements} focusId={selectedId} onNodeTap={handleNodeTap} />
 
       {selected && (
-        <ScrollView style={styles.panel} contentContainerStyle={styles.panelContent}>
+        <ScrollView style={[styles.panel, sharedStyles.hairlineTop]} contentContainerStyle={styles.panelContent}>
           <Text style={styles.panelTitle}>{selected.title}</Text>
           <Text style={styles.panelType}>{selected.type}</Text>
 
           <View style={styles.panelActions}>
             <Pressable
-              style={styles.actionButton}
+              style={sharedStyles.secondaryButton}
               onPress={() => {
                 setLinkFromId(selected.id);
                 setSelectedId(null);
               }}
             >
-              <Text style={styles.actionButtonText}>Связать</Text>
+              <Text style={sharedStyles.secondaryButtonText}>Связать</Text>
             </Pressable>
-            <Pressable style={styles.actionButton} onPress={() => setDecomposing((d) => !d)}>
-              <Text style={styles.actionButtonText}>Разбить</Text>
+            <Pressable style={sharedStyles.secondaryButton} onPress={() => setDecomposing((d) => !d)}>
+              <Text style={sharedStyles.secondaryButtonText}>Разбить</Text>
             </Pressable>
             <Pressable
-              style={styles.actionButton}
+              style={sharedStyles.secondaryButton}
               onPress={() => router.push({ pathname: '/chat', params: { mode: 'think', nodeId: selected.id } })}
             >
-              <Text style={styles.actionButtonText}>Мышление</Text>
+              <Text style={sharedStyles.secondaryButtonText}>Мышление</Text>
             </Pressable>
-            <Pressable style={styles.actionButtonMuted} onPress={() => setSelectedId(null)}>
-              <Text style={styles.actionButtonText}>Закрыть</Text>
+            <Pressable style={sharedStyles.secondaryButton} onPress={() => setSelectedId(null)}>
+              <Text style={sharedStyles.secondaryButtonText}>Закрыть</Text>
             </Pressable>
           </View>
 
           {decomposing && (
             <View style={styles.decomposeBox}>
               <TextInput
-                style={styles.decomposeInput}
+                style={[sharedStyles.input, sharedStyles.multilineInput, styles.decomposeInput]}
                 placeholder={'Составляющие, по одной на строку...'}
                 value={decomposeDraft}
                 onChangeText={setDecomposeDraft}
                 multiline
               />
-              <Pressable style={styles.actionButton} onPress={handleDecomposeConfirm}>
-                <Text style={styles.actionButtonText}>Создать под-узлы</Text>
+              <Pressable style={sharedStyles.primaryButton} onPress={handleDecomposeConfirm}>
+                <Text style={sharedStyles.primaryButtonText}>Создать под-узлы</Text>
               </Pressable>
             </View>
           )}
@@ -163,69 +164,20 @@ export default function MapScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
   quickAddRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     padding: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
   },
-  typeChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: '#f0f0f0',
-  },
-  typeChipActive: { backgroundColor: '#111' },
-  typeChipText: { fontSize: 12, color: '#333' },
-  typeChipTextActive: { fontSize: 12, color: '#fff' },
-  quickAddInput: {
-    flex: 1,
-    backgroundColor: '#f4f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  linkBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff3cd',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  linkBannerText: { fontSize: 12, color: '#664d03' },
-  linkBannerCancel: { fontSize: 12, color: '#664d03', fontWeight: '600' },
-  panel: {
-    maxHeight: 220,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#ddd',
-  },
-  panelContent: { padding: 16 },
-  panelTitle: { fontSize: 17, fontWeight: '600' },
-  panelType: { fontSize: 12, color: '#888', marginTop: 2, marginBottom: 10 },
-  panelActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  actionButton: {
-    backgroundColor: '#111',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  actionButtonMuted: {
-    backgroundColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  actionButtonText: { color: '#fff', fontSize: 13 },
-  decomposeBox: { marginTop: 12, gap: 8 },
-  decomposeInput: {
-    backgroundColor: '#f4f4f6',
-    borderRadius: 10,
-    padding: 10,
-    minHeight: 70,
-    textAlignVertical: 'top',
-  },
+  quickAddInput: { paddingHorizontal: 12, paddingVertical: 8 },
+  linkBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  linkBannerCancel: { fontWeight: '700' },
+  panel: { maxHeight: 220 },
+  panelContent: { padding: spacing.lg },
+  panelTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary },
+  panelType: { fontSize: 12, color: colors.textMuted, marginTop: 2, marginBottom: 10 },
+  panelActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  decomposeBox: { marginTop: spacing.md, gap: spacing.sm },
+  decomposeInput: { minHeight: 70 },
 });

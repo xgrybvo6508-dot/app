@@ -17,6 +17,7 @@ import {
   generateThinkingQuestions,
   saveThinkingAnswer,
 } from '../../lib/ai/localAssistant';
+import { colors, sharedStyles, spacing } from '../../lib/theme';
 import type { ChatMessage } from '../../lib/ai/types';
 
 let idCounter = 0;
@@ -72,10 +73,10 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={sharedStyles.screen} edges={['bottom']}>
       {thinkNode && (
-        <View style={styles.modeBanner}>
-          <Text style={styles.modeBannerText}>Мышление: {thinkNode.title}</Text>
+        <View style={sharedStyles.bannerAccent}>
+          <Text style={sharedStyles.bannerAccentText}>Мышление: {thinkNode.title}</Text>
         </View>
       )}
       <FlatList
@@ -95,7 +96,7 @@ export default function ChatScreen() {
             {item.actions?.map((action) => (
               <Pressable
                 key={action.id}
-                style={styles.actionButton}
+                style={[sharedStyles.primaryButton, styles.actionButton]}
                 onPress={() => {
                   action.run();
                   setMessages((prev) => [
@@ -104,24 +105,24 @@ export default function ChatScreen() {
                   ]);
                 }}
               >
-                <Text style={styles.actionButtonText}>{action.label}</Text>
+                <Text style={sharedStyles.primaryButtonText}>{action.label}</Text>
               </Pressable>
             ))}
           </View>
         )}
       />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.inputRow}>
+        <View style={[styles.inputRow, sharedStyles.hairlineTop]}>
           <TextInput
-            style={styles.input}
+            style={[sharedStyles.input, sharedStyles.flex1]}
             placeholder="Написать..."
             value={draft}
             onChangeText={setDraft}
             onSubmitEditing={handleSend}
             returnKeyType="send"
           />
-          <Pressable style={styles.sendButton} onPress={handleSend}>
-            <Text style={styles.sendButtonText}>→</Text>
+          <Pressable style={sharedStyles.roundButton} onPress={handleSend}>
+            <Text style={sharedStyles.roundButtonText}>→</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -130,45 +131,12 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  modeBanner: { backgroundColor: '#e8f0fe', padding: 8, alignItems: 'center' },
-  modeBannerText: { fontSize: 12, color: '#1a4fb4', fontWeight: '600' },
-  list: { padding: 16, gap: 10 },
-  bubble: { maxWidth: '85%', borderRadius: 14, padding: 12 },
-  bubbleAssistant: { backgroundColor: '#f4f4f6', alignSelf: 'flex-start' },
-  bubbleUser: { backgroundColor: '#111', alignSelf: 'flex-end' },
-  bubbleText: { color: '#111', fontSize: 15 },
-  bubbleTextUser: { color: '#fff', fontSize: 15 },
-  actionButton: {
-    marginTop: 8,
-    backgroundColor: '#111',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignSelf: 'flex-start',
-  },
-  actionButtonText: { color: '#fff', fontSize: 13 },
-  inputRow: {
-    flexDirection: 'row',
-    padding: 12,
-    gap: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#ddd',
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#f4f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonText: { color: '#fff', fontSize: 18 },
+  list: { padding: spacing.lg, gap: 10 },
+  bubble: { maxWidth: '85%', borderRadius: 14, padding: spacing.md },
+  bubbleAssistant: { backgroundColor: colors.surface, alignSelf: 'flex-start' },
+  bubbleUser: { backgroundColor: colors.accent, alignSelf: 'flex-end' },
+  bubbleText: { color: colors.textPrimary, fontSize: 15 },
+  bubbleTextUser: { color: colors.textInverse, fontSize: 15 },
+  actionButton: { marginTop: spacing.sm, alignSelf: 'flex-start' },
+  inputRow: { flexDirection: 'row', padding: spacing.md, gap: spacing.sm },
 });
